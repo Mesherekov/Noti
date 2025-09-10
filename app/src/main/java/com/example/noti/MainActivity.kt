@@ -11,24 +11,29 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.noti.ui.theme.NotiTheme
@@ -43,8 +48,26 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NotiTheme {
-                Scaffold() {
-                    TimePick()
+                Scaffold(bottomBar = {
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                        contentAlignment = Alignment.CenterEnd) {
+                        Button( modifier = Modifier.clip(CircleShape)
+                            .size(70.dp),
+                            onClick = {
+                        }, shape = CircleShape, colors = ButtonDefaults.buttonColors(Color(
+                                0xFF3B5998
+                            ))){
+                            Icon(
+                                painter = painterResource(R.drawable.plus),
+                                contentDescription = "add",
+                                modifier = Modifier.scale(1.3f)
+                            )
+                        }
+                    }
+                }) {
+                    //TimeList()
                 }
             }
         }
@@ -78,7 +101,7 @@ class MainActivity : ComponentActivity() {
             .fillMaxWidth()
             .padding(5.dp)) {
             itemsIndexed(notis){_, item ->
-
+                TimeOne(item)
             }
         }
     }

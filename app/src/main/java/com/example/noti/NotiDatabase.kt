@@ -6,16 +6,12 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class NotiDatabase(context: Context, factory: SQLiteDatabase.CursorFactory?):
     SQLiteOpenHelper(context,
-    "noti",
+    NOTI_NAME,
     factory,
-    1) {
-    val TABLE_NAME = "notidb"
-    val id = "id"
-    val hour = "hour"
-    val minute = "minute"
-    val isActive = "isActive"
+    VERSION) {
+
     override fun onCreate(db: SQLiteDatabase?) {
-        db?.execSQL("create table $TABLE_NAME($id integer primary key,$hour integer,$minute integer,$isActive integer)")
+        db?.execSQL("create table $TABLE_NAME($ID integer primary key, $HOUR integer, $MINUTE integer, $ISACTIVE integer, $MESSAGE text)")
     }
 
     override fun onUpgrade(
@@ -25,5 +21,15 @@ class NotiDatabase(context: Context, factory: SQLiteDatabase.CursorFactory?):
     ) {
         db?.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
         onCreate(db)
+    }
+    companion object{
+        const val VERSION = 1
+        const val NOTI_NAME = "noti"
+        const val TABLE_NAME = "notidb"
+        const val ID = "id"
+        const val HOUR = "hour"
+        const val MINUTE = "minute"
+        const val MESSAGE = "message"
+        const val ISACTIVE = "isActive"
     }
 }

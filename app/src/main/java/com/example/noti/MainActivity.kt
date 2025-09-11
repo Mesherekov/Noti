@@ -100,15 +100,17 @@ class MainActivity : ComponentActivity() {
         LazyColumn(modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)) {
-            itemsIndexed(notis){_, item ->
-                TimeOne(item)
+            itemsIndexed(notis){index, item ->
+                TimeOne(item, index+1)
             }
         }
     }
     //Single notification
+    @SuppressLint("SuspiciousIndentation")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TimeOne(notiInfo: NotiInfo){
+    fun TimeOne(notiInfo: NotiInfo,
+                id: Int){
         val time = LocalTime.of(notiInfo.hour,
             notiInfo.minute)
         val format24hShort = time.format(DateTimeFormatter.ofPattern("HH:mm"))

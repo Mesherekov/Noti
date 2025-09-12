@@ -43,18 +43,17 @@ class MainViewModel: ViewModel() {
         val notiDatabase = NotiDatabase(context, null)
         val db = notiDatabase.readableDatabase
         val cursor = db.rawQuery("SELECT * FROM ${NotiDatabase.TABLE_NAME}", null)
-
         if (cursor.moveToFirst()) {
             do {
                 val hour = cursor.getInt(cursor.getColumnIndex(NotiDatabase.HOUR))
                 val minute = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MINUTE))
                 val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
-                val message = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MESSAGE))
+                val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
                 dataList.add(
                     NotiInfo(hour,
                         minute,
                         isActive==1,
-                        message.toString()
+                        message
                     )
                 )
             } while (cursor.moveToNext())
@@ -64,5 +63,10 @@ class MainViewModel: ViewModel() {
         db.close()
 
         return dataList
+    }
+    fun deleteNoti(id: Int, context: Context){
+        val notiDatabase = NotiDatabase(context, null)
+        val db = notiDatabase.readableDatabase
+        db.delete(NotiDatabase.TABLE_NAME, NotiDatabase.ID + "= ?", arrayOf(id.toString()))
     }
 }

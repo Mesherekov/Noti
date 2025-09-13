@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel: ViewModel() {
-    val _stateFlowNoti = MutableStateFlow<List<NotiInfo>>(emptyList())
+    private val _stateFlowNoti = MutableStateFlow<List<NotiInfo>>(emptyList())
     val itemsState: StateFlow<List<NotiInfo>> = _stateFlowNoti.asStateFlow()
     override fun onCleared() {
         super.onCleared()
@@ -25,6 +25,7 @@ class MainViewModel: ViewModel() {
             put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
         }
         database.insert(NotiDatabase.TABLE_NAME, null, contentValues)
+        getAllData(context)
     }
 
     fun updateNoti(context: Context,
@@ -60,14 +61,9 @@ class MainViewModel: ViewModel() {
                         message
                     )
                 )
-                _stateFlowNoti.value = _stateFlowNoti.value + NotiInfo(hour,
-                    minute,
-                    isActive==1,
-                    message
-                )
             } while (cursor.moveToNext())
         }
-
+        _stateFlowNoti.value = dataList
         cursor.close()
         db.close()
 

@@ -9,20 +9,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.splineBasedDecay
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -32,7 +34,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,6 +47,7 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,7 +83,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         model = ViewModelProvider(this)[MainViewModel::class]
-
+        model.getAllData(this)
         setContent {
             NotiTheme {
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -126,7 +128,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }) {
                     Spacer(Modifier.height(20.dp))
-                    TimeList(model.getAllData(this), this)
+                    TimeList(model.itemsState.collectAsState().value, this)
                     if (!isHide.value) TimePick(isHide, this)
                 }
             }
@@ -196,7 +198,7 @@ class MainActivity : ComponentActivity() {
                  context: Context){
         LazyColumn(modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp)) {
+            .padding(5.dp).windowInsetsPadding(WindowInsets.navigationBars)) {
             itemsIndexed(notis){index, item ->
                 TimeOne(item, index+1, context)
             }
@@ -210,16 +212,20 @@ class MainActivity : ComponentActivity() {
                 id: Int, context: Context){
         val time = LocalTime.of(notiInfo.hour,
             notiInfo.minute)
+        var colorCard by remember {
+            mutableStateOf(if (notiInfo.isActive) Color(0xFFB3B5FF) else Color(0xFFCFCCCC))
+        }
         val format24hShort = time.format(DateTimeFormatter.ofPattern("HH:mm"))
             Card(
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),
                 modifier = Modifier.padding(5.dp)
-                    .swipeToDismiss {
-                    model.deleteNoti(id, context)
-                },
+//                    .swipeToDismiss {
+//                    model.deleteNoti(id, context)
+//                },
+                    ,
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFB3B5FF)
+                    containerColor = colorCard
                 )
             ) {
                 Row(
@@ -242,6 +248,7 @@ class MainActivity : ComponentActivity() {
                         Switch(
                             checked = isActive.value,
                             onCheckedChange = {
+                                colorCard = if (!it) Color(0xFFCFCCCC) else Color(0xFFB3B5FF)
                                 isActive.value = it
                                 model.updateNoti(context,
                                     notiInfo.copy(isActive = isActive.value), id)

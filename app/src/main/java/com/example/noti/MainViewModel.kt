@@ -4,9 +4,13 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel: ViewModel() {
-
+    val _stateFlowNoti = MutableStateFlow<List<NotiInfo>>(emptyList())
+    val itemsState: StateFlow<List<NotiInfo>> = _stateFlowNoti.asStateFlow()
     override fun onCleared() {
         super.onCleared()
     }
@@ -55,6 +59,11 @@ class MainViewModel: ViewModel() {
                         isActive==1,
                         message
                     )
+                )
+                _stateFlowNoti.value = _stateFlowNoti.value + NotiInfo(hour,
+                    minute,
+                    isActive==1,
+                    message
                 )
             } while (cursor.moveToNext())
         }

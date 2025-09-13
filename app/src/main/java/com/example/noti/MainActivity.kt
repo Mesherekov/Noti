@@ -9,14 +9,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +32,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,8 +46,10 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -55,6 +61,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.noti.ui.theme.NotiTheme
 import kotlinx.coroutines.coroutineScope
@@ -72,31 +81,51 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         model = ViewModelProvider(this)[MainViewModel::class]
+
         setContent {
             NotiTheme {
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.apply {
+                    hide(WindowInsetsCompat.Type.statusBars())
+                    systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
                 val isHide = remember {
                     mutableStateOf(true)
                 }
                 Scaffold(bottomBar = {
-                    Box(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                        contentAlignment = Alignment.CenterEnd) {
-                        Button( modifier = Modifier.clip(CircleShape)
-                            .size(70.dp),
-                            onClick = {
-                                isHide.value = false
-                        }, shape = CircleShape, colors = ButtonDefaults.buttonColors(Color(
-                                0xFF3B5998
-                            ))){
-                            Icon(
-                                painter = painterResource(R.drawable.plus),
-                                contentDescription = "add",
-                                modifier = Modifier.scale(1.3f)
-                            )
+                    if (isHide.value) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth().fillMaxHeight(0.2f)
+                                .padding(20.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Card(
+                                elevation = CardDefaults.elevatedCardElevation(3.dp),
+                                shape = CircleShape
+                            ) {
+                                Button(
+                                    modifier = Modifier.clip(CircleShape)
+                                        .size(70.dp),
+                                    onClick = {
+                                        isHide.value = false
+                                    }, shape = CircleShape, colors = ButtonDefaults.buttonColors(
+                                        Color(
+                                            0xFF3B5998
+                                        )
+                                    )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.plus),
+                                        contentDescription = "add",
+                                        modifier = Modifier.scale(1.3f)
+                                    )
+                                }
+                            }
                         }
                     }
                 }) {
+                    Spacer(Modifier.height(20.dp))
                     TimeList(model.getAllData(this), this)
                     if (!isHide.value) TimePick(isHide, this)
                 }
@@ -108,7 +137,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TimePick(isHide: MutableState<Boolean>, context: Context){
-        val message = remember{mutableStateOf("")}
+        var message by remember{mutableStateOf("")}
         Box(contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
@@ -121,7 +150,7 @@ class MainActivity : ComponentActivity() {
             )
             Card(elevation = CardDefaults
                 .elevatedCardElevation(5.dp),
-                modifier = Modifier.padding(3.dp).fillMaxWidth(0.5f)) {
+                modifier = Modifier.padding(3.dp).fillMaxWidth(0.6f)) {
                 Column {
                     Row(Modifier.padding(4.dp)) {
                         IconButton(onClick = {
@@ -136,7 +165,7 @@ class MainActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(onClick = {
                             model.addNoti(context, NotiInfo(timePickerState.hour,
-                                timePickerState.minute, true, message.value))
+                                timePickerState.minute, true, message))
                             isHide.value = true
                         }, modifier = Modifier.size(52.dp)) {
                             Icon(
@@ -147,18 +176,20 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     TimeInput(
-                        state = timePickerState,
+                        state = timePickerState
                     )
                     OutlinedTextField(onValueChange = {
-                        message.value = it
+                        message = it
                     },
-                        value = message.value, label = {Text("Введите напоминание")},
+                        value = message, label = {Text("Введите напоминание")},
                         modifier = Modifier.padding(3.dp))
 
                 }
             }
         }
     }
+
+
     //List of notification
     @Composable
     fun TimeList(notis: List<NotiInfo>,
@@ -183,9 +214,13 @@ class MainActivity : ComponentActivity() {
             Card(
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),
-                modifier = Modifier.padding(5.dp).swipeToDismiss {
+                modifier = Modifier.padding(5.dp)
+                    .swipeToDismiss {
                     model.deleteNoti(id, context)
-                }
+                },
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFB3B5FF)
+                )
             ) {
                 Row(
                     modifier = Modifier

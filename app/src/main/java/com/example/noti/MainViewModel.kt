@@ -25,6 +25,7 @@ class MainViewModel: ViewModel() {
             put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
         }
         database.insert(NotiDatabase.TABLE_NAME, null, contentValues)
+        database.close()
         getAllData(context)
     }
 
@@ -40,6 +41,7 @@ class MainViewModel: ViewModel() {
             put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
         }
         database.update(NotiDatabase.TABLE_NAME, contentValues, NotiDatabase.ID + "= ?", arrayOf(id.toString()))
+        database.close()
     }
 
     @SuppressLint("Range")
@@ -72,6 +74,8 @@ class MainViewModel: ViewModel() {
     fun deleteNoti(id: Int, context: Context){
         val notiDatabase = NotiDatabase(context, null)
         val db = notiDatabase.readableDatabase
-        db.delete(NotiDatabase.TABLE_NAME, NotiDatabase.ID + "= ?", arrayOf(id.toString()))
+        db.delete(NotiDatabase.TABLE_NAME,
+            NotiDatabase.ID + "= ?", arrayOf(id.toString()))
+        db.close()
     }
 }

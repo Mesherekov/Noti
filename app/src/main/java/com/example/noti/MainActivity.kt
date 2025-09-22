@@ -1,8 +1,13 @@
 package com.example.noti
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -44,6 +49,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -63,6 +69,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -81,11 +88,30 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(
+                    Manifest.permission.POST_NOTIFICATIONS
+                ), 0
+            )
+        }
         enableEdgeToEdge()
         model = ViewModelProvider(this)[MainViewModel::class]
         model.getAllData(this)
+        if (model.itemsState.value.any {
+            it.isActive
+            }){
+        }
         setContent {
             NotiTheme {
+                try {
+                    Intent(applicationContext, ForegroundService::class.java).also {
+                        it.action = ForegroundService.Actions.START.toString()
+                        startService(it)
+                    }
+                } catch (ex: Exception){
+                    Log.i("ERROR", ex.toString())
+                }
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                 insetsController.apply {
                     hide(WindowInsetsCompat.Type.statusBars())
@@ -220,10 +246,10 @@ class MainActivity : ComponentActivity() {
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),
                 modifier = Modifier.padding(5.dp)
-//                    .swipeToDismiss {
-//                    model.deleteNoti(id, context)
-//                },
-                    ,
+                    .swipeToDismiss {
+                    model.deleteNoti(id, context)
+                },
+
                 colors = CardDefaults.cardColors(
                     containerColor = colorCard
                 )

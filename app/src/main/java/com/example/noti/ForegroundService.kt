@@ -4,11 +4,15 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.icu.util.Calendar
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import java.util.Timer
+import java.util.TimerTask
 
 class ForegroundService: Service() {
     override fun onBind(p0: Intent?): IBinder? {
@@ -19,12 +23,33 @@ class ForegroundService: Service() {
 
     }
 
+    @Suppress("DEPRECATION")
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action){
             Actions.START.toString() -> start()
             Actions.START.toString() -> stopSelf()
+        }
+        val listNoti = MainViewModel.getAllData(applicationContext).filter {
+            it.isActive
+        }
+        val runCatch = runCatching {
+            val timer = Timer()
+            timer.schedule(
+                object : TimerTask() {
+                    override fun run() {
+                        val currentTime = Calendar.getInstance().time
+                        if (listNoti.any { it.hour == currentTime.hours && it.minute == currentTime.minutes }) {
 
+                        }
+                    }
+                },
+                0,
+                10000
+            )
+        }
+        runCatch.onFailure {
+            Log.e("TimerError", it.toString())
         }
         return super.onStartCommand(intent, flags, startId)
     }

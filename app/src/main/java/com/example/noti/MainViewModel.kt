@@ -29,6 +29,7 @@ class MainViewModel: ViewModel() {
         getAllData(context)
     }
 
+
     fun updateNoti(context: Context,
                    notiInfo: NotiInfo,
                    id: Int = 1){
@@ -42,6 +43,7 @@ class MainViewModel: ViewModel() {
         }
         database.update(NotiDatabase.TABLE_NAME, contentValues, NotiDatabase.ID + "= ?", arrayOf(id.toString()))
         database.close()
+        getAllData(context)
     }
 
     @SuppressLint("Range")
@@ -77,5 +79,32 @@ class MainViewModel: ViewModel() {
         db.delete(NotiDatabase.TABLE_NAME,
             NotiDatabase.ID + "= ?", arrayOf(id.toString()))
         db.close()
+    }
+    companion object{
+        @SuppressLint("Range")
+        fun getAllData(context: Context): List<NotiInfo> {
+            val dataList = mutableListOf<NotiInfo>()
+            val notiDatabase = NotiDatabase(context, null)
+            val db = notiDatabase.readableDatabase
+            val cursor = db.rawQuery("SELECT * FROM ${NotiDatabase.TABLE_NAME}", null)
+            if (cursor.moveToFirst()) {
+                do {
+                    val hour = cursor.getInt(cursor.getColumnIndex(NotiDatabase.HOUR))
+                    val minute = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MINUTE))
+                    val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
+                    val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
+                    dataList.add(
+                        NotiInfo(hour,
+                            minute,
+                            isActive==1,
+                            message
+                        )
+                    )
+                } while (cursor.moveToNext())
+            }
+            cursor.close()
+            db.close()
+            return dataList
+        }
     }
 }

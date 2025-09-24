@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -49,7 +48,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -85,6 +83,7 @@ import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     lateinit var model: MainViewModel
+
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,20 +97,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         model = ViewModelProvider(this)[MainViewModel::class]
         model.getAllData(this)
-        if (model.itemsState.value.any {
-            it.isActive
-            }){
-        }
+        isAnyActive()
         setContent {
             NotiTheme {
-                try {
-                    Intent(applicationContext, ForegroundService::class.java).also {
-                        it.action = ForegroundService.Actions.START.toString()
-                        startService(it)
-                    }
-                } catch (ex: Exception){
-                    Log.i("ERROR", ex.toString())
-                }
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                 insetsController.apply {
                     hide(WindowInsetsCompat.Type.statusBars())
@@ -124,7 +112,8 @@ class MainActivity : ComponentActivity() {
                     if (isHide.value) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth().fillMaxHeight(0.2f)
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.2f)
                                 .padding(20.dp),
                             contentAlignment = Alignment.CenterEnd
                         ) {
@@ -133,7 +122,8 @@ class MainActivity : ComponentActivity() {
                                 shape = CircleShape
                             ) {
                                 Button(
-                                    modifier = Modifier.clip(CircleShape)
+                                    modifier = Modifier
+                                        .clip(CircleShape)
                                         .size(70.dp),
                                     onClick = {
                                         isHide.value = false
@@ -178,11 +168,14 @@ class MainActivity : ComponentActivity() {
             )
             Card(elevation = CardDefaults
                 .elevatedCardElevation(5.dp),
-                modifier = Modifier.padding(3.dp).fillMaxWidth(0.6f)) {
+                modifier = Modifier
+                    .padding(3.dp)
+                    .fillMaxWidth(0.6f)) {
                 Column {
                     Row(Modifier.padding(4.dp)) {
                         IconButton(onClick = {
                             isHide.value = true
+                            isAnyActive()
                         }, modifier = Modifier.size(52.dp)) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -224,7 +217,8 @@ class MainActivity : ComponentActivity() {
                  context: Context){
         LazyColumn(modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp).windowInsetsPadding(WindowInsets.navigationBars)) {
+            .padding(5.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)) {
             itemsIndexed(notis){index, item ->
                 TimeOne(item, index+1, context)
             }
@@ -245,10 +239,11 @@ class MainActivity : ComponentActivity() {
             Card(
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),
-                modifier = Modifier.padding(5.dp)
+                modifier = Modifier
+                    .padding(5.dp)
                     .swipeToDismiss {
-                    model.deleteNoti(id, context)
-                },
+                        model.deleteNoti(id, context)
+                    },
 
                 colors = CardDefaults.cardColors(
                     containerColor = colorCard
@@ -278,6 +273,7 @@ class MainActivity : ComponentActivity() {
                                 isActive.value = it
                                 model.updateNoti(context,
                                     notiInfo.copy(isActive = isActive.value), id)
+                                isAnyActive()
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
@@ -351,6 +347,27 @@ class MainActivity : ComponentActivity() {
             }
         }
             .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+    }
+    fun isAnyActive(){
+        if (model.itemsState.value.any {
+                it.isActive
+            }) {
+            val runCatch = runCatching {
+                Intent(applicationContext, ForegroundService::class.java).also {
+                    it.action = ForegroundService.Actions.START.toString()
+                    startService(it)
+                }
+            }
+            runCatch.onFailure { Log.e("ServiceError", it.toString()) }
+        } else {
+            val runCatch = runCatching {
+                Intent(applicationContext, ForegroundService::class.java).also {
+                    it.action = ForegroundService.Actions.STOP.toString()
+                    stopService(it)
+                }
+            }
+            runCatch.onFailure { Log.e("ServiceError", it.toString()) }
+        }
     }
 
 }

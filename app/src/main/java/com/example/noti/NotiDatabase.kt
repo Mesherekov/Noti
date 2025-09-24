@@ -23,10 +23,10 @@ class NotiDatabase(context: Context, factory: SQLiteDatabase.CursorFactory?):
         onCreate(db)
     }
     companion object{
-        const val VERSION = 1
+        const val VERSION = 2
         const val NOTI_NAME = "noti"
         const val TABLE_NAME = "notidb"
-        const val ID = "id"
+        const val ID = "_id"
         const val HOUR = "hour"
         const val MINUTE = "minute"
         const val MESSAGE = "message"

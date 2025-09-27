@@ -39,7 +39,7 @@ class ForegroundService: Service() {
         }
         val listNoti = MainViewModel.getAllData(applicationContext).filter {
             it.isActive
-        }
+        }.toMutableList()
 //        val channel = NotificationChannel(
 //            "notes_channel",
 //            "Notes",
@@ -56,9 +56,10 @@ class ForegroundService: Service() {
                 object : TimerTask() {
                     override fun run() {
                         val currentTime = Calendar.getInstance().time
-                        listNoti.forEach {
-                            if(it.hour == currentTime.hours && it.minute == currentTime.minutes){
-                                sendNoti(it)
+                        listNoti.forEachIndexed { id, item ->
+                            if(item.hour == currentTime.hours && item.minute == currentTime.minutes){
+                                sendNoti(item)
+                                listNoti.removeAt(id)
                             }
                         }
                     }
@@ -96,7 +97,7 @@ class ForegroundService: Service() {
             info.hour,
             info.minute)
         val format24hShort = time.format(DateTimeFormatter.ofPattern("HH:mm"))
-        val intent: Intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

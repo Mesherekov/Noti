@@ -13,8 +13,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,10 +30,13 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -39,20 +44,27 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +76,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -156,6 +169,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun TimePick(isHide: MutableState<Boolean>, context: Context){
         var message by remember{mutableStateOf("")}
+
+
         Box(contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
@@ -170,7 +185,10 @@ class MainActivity : ComponentActivity() {
                 .elevatedCardElevation(5.dp),
                 modifier = Modifier
                     .padding(3.dp)
-                    .fillMaxWidth(0.6f)) {
+                    .fillMaxWidth(0.6f),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFBFBDEB)
+                )) {
                 Column {
                     Row(Modifier.padding(4.dp)) {
                         IconButton(onClick = {
@@ -196,15 +214,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
-                    TimeInput(
-                        state = timePickerState
-                    )
+                    SingleChoiceSegmentedButton(Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp))
+
+                    TimeSelect(timePickerState)
                     OutlinedTextField(onValueChange = {
                         message = it
                     },
                         value = message, label = {Text("Введите напоминание")},
                         modifier = Modifier.padding(3.dp))
-
                 }
             }
         }
@@ -289,6 +308,125 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+    }
+
+    //Triggering a time note
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun TimeSelect(timePickerState: TimePickerState){
+        var isCheck by remember { mutableStateOf(false) }
+        Card(elevation = CardDefaults
+            .elevatedCardElevation(5.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFB4AFFB)
+            )) {
+            Row(horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text("Дни недели",
+                    color = Color.Black)
+                Checkbox(checked = isCheck,
+                    onCheckedChange = {
+                        isCheck = it
+                    })
+            }
+        }
+
+        TimeInput(
+            state = timePickerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(3.dp),
+            colors = TimePickerDefaults.colors(
+                clockDialColor = Color(0xFFE3B0F1),
+
+                selectorColor = Color(0xFF6200EE),
+
+
+                clockDialSelectedContentColor = Color.White,
+                clockDialUnselectedContentColor = Color(0xFFCD68F8),
+
+                timeSelectorSelectedContainerColor = Color(0xFFEADDFF),
+                timeSelectorUnselectedContainerColor = Color(0xFFE6E0E9),
+                timeSelectorSelectedContentColor = Color(0xFF4F378A),
+                timeSelectorUnselectedContentColor = Color.Black
+            )
+        )
+
+    }
+    //Interval note
+    @Preview(showBackground = true)
+    @Composable
+    fun PeriodSelect(){
+        var inputValue by remember { mutableStateOf("") }
+        Card(elevation = CardDefaults
+            .elevatedCardElevation(4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFB4AFFB)
+            )) {
+            BasicTextField(
+                modifier = Modifier.padding(4.dp),
+                value = inputValue,
+                onValueChange = {inputValue = it},
+                decorationBox = { innerTextField ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Срабатывать раз в "
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .widthIn(min = 40.dp)
+                                .background(
+                                    color = Color(0xFFF0F0F0),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            innerTextField()
+                        }
+
+                        Text(
+                            text = "мин",
+                        )
+                    }
+                }
+            )
+        }
+    }
+    @Composable
+    fun SingleChoiceSegmentedButton(modifier: Modifier = Modifier) {
+        // Creates a segmented button for selecting one option
+        var selectedIndex by remember { mutableIntStateOf(0) } // Tracks selected button index
+        val options = listOf("Время", "Период") // Defines button labels
+        SingleChoiceSegmentedButtonRow(modifier) {
+            options.forEachIndexed { index, label ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = options.size
+                    ), // *Required: Sets button shape based on position
+                    onClick = {
+                        selectedIndex = index },
+                    selected = index == selectedIndex,
+                    label = { Text(label) },
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = Color(0xFFA672FF),
+                        inactiveContainerColor = Color(0xFFBFBDEB),
+                        activeContentColor = Color(0xFFF5F0FF),
+                        inactiveContentColor = Color.Black
+                    )
+                )
+            }
+        }
     }
     @SuppressLint("MultipleAwaitPointerEventScopes", "ReturnFromAwaitPointerEventScope")
     fun Modifier.swipeToDismiss(

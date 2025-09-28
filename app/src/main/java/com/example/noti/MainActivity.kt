@@ -49,6 +49,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -216,14 +217,22 @@ class MainActivity : ComponentActivity() {
                     }
                     SingleChoiceSegmentedButton(Modifier
                         .fillMaxWidth()
-                        .padding(5.dp))
+                        .padding(5.dp),
+                        onTime = {TimeSelect(timePickerState)},
+                        onPeriod = {PeriodSelect()})
 
-                    TimeSelect(timePickerState)
+                    //TimeSelect(timePickerState)
                     OutlinedTextField(onValueChange = {
                         message = it
                     },
                         value = message, label = {Text("Введите напоминание")},
-                        modifier = Modifier.padding(3.dp))
+                        modifier = Modifier.padding(3.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFEADDFF),
+                            unfocusedContainerColor = Color(0xFFE6E0E9),
+                            focusedTextColor = Color(0xFF4F378A),
+                            focusedLabelColor = Color(0xFF6950A9)
+                        ))
                 }
             }
         }
@@ -379,7 +388,7 @@ class MainActivity : ComponentActivity() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Срабатывать раз в "
+                            text = "Раз в "
                         )
 
                         Box(
@@ -393,9 +402,8 @@ class MainActivity : ComponentActivity() {
                         ) {
                             innerTextField()
                         }
-
                         Text(
-                            text = "мин",
+                            text = "\tмин"
                         )
                     }
                 }
@@ -403,29 +411,37 @@ class MainActivity : ComponentActivity() {
         }
     }
     @Composable
-    fun SingleChoiceSegmentedButton(modifier: Modifier = Modifier) {
+    fun SingleChoiceSegmentedButton(modifier: Modifier = Modifier,
+                                    onTime: @Composable () -> Unit,
+                                    onPeriod: @Composable () -> Unit) {
         // Creates a segmented button for selecting one option
         var selectedIndex by remember { mutableIntStateOf(0) } // Tracks selected button index
         val options = listOf("Время", "Период") // Defines button labels
-        SingleChoiceSegmentedButtonRow(modifier) {
-            options.forEachIndexed { index, label ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = options.size
-                    ), // *Required: Sets button shape based on position
-                    onClick = {
-                        selectedIndex = index },
-                    selected = index == selectedIndex,
-                    label = { Text(label) },
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = Color(0xFFA672FF),
-                        inactiveContainerColor = Color(0xFFBFBDEB),
-                        activeContentColor = Color(0xFFF5F0FF),
-                        inactiveContentColor = Color.Black
+        Column {
+            SingleChoiceSegmentedButtonRow(modifier) {
+                options.forEachIndexed { index, label ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = options.size
+                        ), // *Required: Sets button shape based on position
+                        onClick = {
+                            selectedIndex = index
+                        },
+                        selected = index == selectedIndex,
+                        label = { Text(label) },
+                        colors = SegmentedButtonDefaults.colors(
+                            activeContainerColor = Color(0xFFA672FF),
+                            inactiveContainerColor = Color(0xFFBFBDEB),
+                            activeContentColor = Color(0xFFF5F0FF),
+                            inactiveContentColor = Color.Black
+                        )
                     )
-                )
+                }
             }
+            if (selectedIndex == 0) {
+                onTime()
+            } else onPeriod()
         }
     }
     @SuppressLint("MultipleAwaitPointerEventScopes", "ReturnFromAwaitPointerEventScope")

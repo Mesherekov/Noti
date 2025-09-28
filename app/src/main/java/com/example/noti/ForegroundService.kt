@@ -35,26 +35,18 @@ class ForegroundService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when(intent?.action){
             Actions.START.toString() -> start()
-            Actions.START.toString() -> stopSelf()
+            Actions.STOP.toString() -> stopSelf()
         }
-        val listNoti = MainViewModel.getAllData(applicationContext).filter {
-            it.isActive
-        }.toMutableList()
-//        val channel = NotificationChannel(
-//            "notes_channel",
-//            "Notes",
-//            NotificationManager.IMPORTANCE_DEFAULT
-//        )
-//        val manager = getSystemService<NotificationManager?>(NotificationManager::class.java)
-//        manager?.run {
-//            createNotificationChannel(channel)
-//        }
+        var listNoti: MutableList<NotiInfo>
 
         val runCatch = runCatching {
             val timer = Timer()
             timer.schedule(
                 object : TimerTask() {
                     override fun run() {
+                        listNoti = MainViewModel.getAllData(applicationContext).filter {
+                            it.isActive
+                        }.toMutableList()
                         val currentTime = Calendar.getInstance().time
                         listNoti.forEachIndexed { id, item ->
                             if(item.hour == currentTime.hours && item.minute == currentTime.minutes){
@@ -79,7 +71,7 @@ class ForegroundService: Service() {
     private fun start(){
         try {
             val noti = NotificationCompat.Builder(this, "noti_channel")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.notif)
                 .setContentTitle("Уведомляем")
                 .setContentText("ROe")
                 .build()
@@ -103,7 +95,7 @@ class ForegroundService: Service() {
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val noti = NotificationCompat.Builder(this, "noti_channel")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.notif)
             .setContentTitle(info.message)
             .setContentText(format24hShort)
             .setContentIntent(pendingIntent)

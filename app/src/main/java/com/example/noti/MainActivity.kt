@@ -37,6 +37,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -62,6 +63,7 @@ import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -77,7 +79,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -170,7 +172,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun TimePick(isHide: MutableState<Boolean>, context: Context){
         var message by remember{mutableStateOf("")}
-
+        val inputValue = remember { mutableStateOf("") }
+        val selectedIndex = remember { mutableIntStateOf(0) } // Tracks selected button index
 
         Box(contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -204,8 +207,13 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         IconButton(onClick = {
-                            model.addNoti(context, NotiInfo(timePickerState.hour,
-                                timePickerState.minute, true, message))
+                            when(selectedIndex.intValue){
+                                0 -> model.addNoti(context, NotiInfo(timePickerState.hour,
+                                    timePickerState.minute, true, message))
+                                1 -> model.addNoti(context, NotiInfo(isActive = true,
+                                    message = message,
+                                    period = inputValue.value.toInt()))
+                            }
                             isHide.value = true
                         }, modifier = Modifier.size(52.dp)) {
                             Icon(
@@ -219,7 +227,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(5.dp),
                         onTime = {TimeSelect(timePickerState)},
-                        onPeriod = {PeriodSelect()})
+                        onPeriod = {PeriodSelect(inputValue)},
+                        selectedIndex)
 
                     //TimeSelect(timePickerState)
                     OutlinedTextField(onValueChange = {
@@ -258,12 +267,12 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun TimeOne(notiInfo: NotiInfo,
                 id: Int, context: Context){
-        val time = LocalTime.of(notiInfo.hour,
-            notiInfo.minute)
+        val time = if(notiInfo.hour!=-1) LocalTime.of(notiInfo.hour,
+            notiInfo.minute) else null
         var colorCard by remember {
             mutableStateOf(if (notiInfo.isActive) Color(0xFFB3B5FF) else Color(0xFFCFCCCC))
         }
-        val format24hShort = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val format24hShort = if(notiInfo.period==0) time?.format(DateTimeFormatter.ofPattern("HH:mm")) else "Раз в ${notiInfo.period} минут"
             Card(
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),
@@ -282,7 +291,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(5.dp)
                 ) {Column {
-                    Text(text = format24hShort,
+                    Text(text = format24hShort ?: "",
                         fontSize = 25.sp)
                     Text(text = notiInfo.message,
                         fontSize = 14.sp)
@@ -367,10 +376,8 @@ class MainActivity : ComponentActivity() {
 
     }
     //Interval note
-    @Preview(showBackground = true)
     @Composable
-    fun PeriodSelect(){
-        var inputValue by remember { mutableStateOf("") }
+    fun PeriodSelect(inputValue: MutableState<String>) {
         Card(elevation = CardDefaults
             .elevatedCardElevation(4.dp),
             modifier = Modifier
@@ -381,8 +388,8 @@ class MainActivity : ComponentActivity() {
             )) {
             BasicTextField(
                 modifier = Modifier.padding(4.dp),
-                value = inputValue,
-                onValueChange = {inputValue = it},
+                value = inputValue.value,
+                onValueChange = {if(it.all { char -> char.isDigit() } && it[0].code != 0) inputValue.value = it},
                 decorationBox = { innerTextField ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -406,16 +413,19 @@ class MainActivity : ComponentActivity() {
                             text = "\tмин"
                         )
                     }
-                }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
     }
     @Composable
-    fun SingleChoiceSegmentedButton(modifier: Modifier = Modifier,
-                                    onTime: @Composable () -> Unit,
-                                    onPeriod: @Composable () -> Unit) {
+    fun SingleChoiceSegmentedButton(
+        modifier: Modifier = Modifier,
+        onTime: @Composable () -> Unit,
+        onPeriod: @Composable () -> Unit,
+        selectedIndex: MutableIntState
+    ) {
         // Creates a segmented button for selecting one option
-        var selectedIndex by remember { mutableIntStateOf(0) } // Tracks selected button index
         val options = listOf("Время", "Период") // Defines button labels
         Column {
             SingleChoiceSegmentedButtonRow(modifier) {
@@ -426,9 +436,9 @@ class MainActivity : ComponentActivity() {
                             count = options.size
                         ), // *Required: Sets button shape based on position
                         onClick = {
-                            selectedIndex = index
+                            selectedIndex.intValue = index
                         },
-                        selected = index == selectedIndex,
+                        selected = index == selectedIndex.intValue,
                         label = { Text(label) },
                         colors = SegmentedButtonDefaults.colors(
                             activeContainerColor = Color(0xFFA672FF),
@@ -439,7 +449,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-            if (selectedIndex == 0) {
+            if (selectedIndex.intValue == 0) {
                 onTime()
             } else onPeriod()
         }

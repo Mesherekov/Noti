@@ -45,7 +45,7 @@ class ForegroundService: Service() {
                 object : TimerTask() {
                     override fun run() {
                         listNoti = MainViewModel.getAllData(applicationContext).filter {
-                            it.isActive
+                            it.isActive && it.period == 0
                         }.toMutableList()
                         val currentTime = Calendar.getInstance().time
                         listNoti.forEachIndexed { id, item ->
@@ -117,6 +117,6 @@ class ForegroundService: Service() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        notificationManager.notify(1, noti)
+        notificationManager.notify(2, noti)
     }
 }

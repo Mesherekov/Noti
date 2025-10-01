@@ -23,6 +23,7 @@ class MainViewModel: ViewModel() {
             put(NotiDatabase.MINUTE, notiInfo.minute)
             put(NotiDatabase.MESSAGE, notiInfo.message)
             put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
+            put(NotiDatabase.PERIOD, notiInfo.period)
         }
         database.insert(NotiDatabase.TABLE_NAME, null, contentValues)
         database.close()
@@ -58,11 +59,14 @@ class MainViewModel: ViewModel() {
                 val minute = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MINUTE))
                 val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
                 val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
+                val period = cursor.getInt(cursor.getColumnIndex(NotiDatabase.PERIOD))
+
                 dataList.add(
                     NotiInfo(hour,
                         minute,
                         isActive==1,
-                        message
+                        message,
+                        period
                     )
                 )
             } while (cursor.moveToNext())
@@ -80,6 +84,7 @@ class MainViewModel: ViewModel() {
             NotiDatabase.ID + "= ?", arrayOf(id.toString()))
         db.close()
     }
+
     companion object{
         @SuppressLint("Range")
         fun getAllData(context: Context): List<NotiInfo> {

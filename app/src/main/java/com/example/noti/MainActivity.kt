@@ -272,7 +272,7 @@ class MainActivity : ComponentActivity() {
         var colorCard by remember {
             mutableStateOf(if (notiInfo.isActive) Color(0xFFB3B5FF) else Color(0xFFCFCCCC))
         }
-        val format24hShort = if(notiInfo.period==0) time?.format(DateTimeFormatter.ofPattern("HH:mm")) else "Раз в ${notiInfo.period} минут"
+        val format24hShort = if(time!=null) time.format(DateTimeFormatter.ofPattern("HH:mm")) else "Раз в ${notiInfo.period} минут"
             Card(
                 elevation = CardDefaults
                     .elevatedCardElevation(4.dp),

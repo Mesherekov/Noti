@@ -40,6 +40,9 @@ class ForegroundService: Service() {
         var listNoti: MutableList<NotiInfo>
 
         val runCatch = runCatching {
+            val listIntervalNoti = MainViewModel.getAllData(applicationContext).filter {
+            it.isActive && it.period != 0
+            }.toMutableList()
             val timer = Timer()
             timer.schedule(
                 object : TimerTask() {
@@ -57,9 +60,20 @@ class ForegroundService: Service() {
                     }
                 },
                 0,
-                300
+                10000
             )
-
+            listIntervalNoti.forEach {
+                val timer = Timer()
+                timer.schedule(
+                    object : TimerTask() {
+                        override fun run() {
+                            sendNoti(it)
+                        }
+                    },
+                    0,
+                    it.period*1000*60L
+                )
+            }
         }
         runCatch.onFailure {
             Log.e("TimerError", it.toString())
@@ -85,10 +99,9 @@ class ForegroundService: Service() {
         START, STOP
     }
     fun sendNoti(info: NotiInfo) {
-        val time = LocalTime.of(
-            info.hour,
-            info.minute)
-        val format24hShort = time.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val time = if(info.hour!=-1) LocalTime.of(info.hour,
+            info.minute) else null
+        val format24hShort = if (time!=null) time.format(DateTimeFormatter.ofPattern("HH:mm")) else "Раз в ${info.period} минут"
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent = PendingIntent.getActivity(

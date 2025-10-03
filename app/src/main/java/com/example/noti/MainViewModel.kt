@@ -3,6 +3,7 @@ package com.example.noti
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,19 +33,27 @@ class MainViewModel: ViewModel() {
 
 
     fun updateNoti(context: Context,
-                   notiInfo: NotiInfo,
-                   id: Int = 1){
-        val notiDatabase = NotiDatabase(context, null)
-        val database = notiDatabase.writableDatabase
-        val contentValues = ContentValues().apply {
-            put(NotiDatabase.HOUR, notiInfo.hour)
-            put(NotiDatabase.MINUTE, notiInfo.minute)
-            put(NotiDatabase.MESSAGE, notiInfo.message)
-            put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
+                   notiInfo: NotiInfo){
+        try {
+            val notiDatabase = NotiDatabase(context, null)
+            val database = notiDatabase.writableDatabase
+            val contentValues = ContentValues().apply {
+                put(NotiDatabase.HOUR, notiInfo.hour)
+                put(NotiDatabase.MINUTE, notiInfo.minute)
+                put(NotiDatabase.MESSAGE, notiInfo.message)
+                put(NotiDatabase.ISACTIVE, if (notiInfo.isActive) 1 else 0)
+            }
+            database.update(
+                NotiDatabase.TABLE_NAME,
+                contentValues,
+                NotiDatabase.ID + "= ?",
+                arrayOf(notiInfo.id.toString())
+            )
+            database.close()
+            getAllData(context)
+        } catch (ex: Exception){
+            Log.e("Error", ex.toString())
         }
-        database.update(NotiDatabase.TABLE_NAME, contentValues, NotiDatabase.ID + "= ?", arrayOf(id.toString()))
-        database.close()
-        getAllData(context)
     }
 
     @SuppressLint("Range")
@@ -55,6 +64,7 @@ class MainViewModel: ViewModel() {
         val cursor = db.rawQuery("SELECT * FROM ${NotiDatabase.TABLE_NAME}", null)
         if (cursor.moveToFirst()) {
             do {
+                val id = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ID))
                 val hour = cursor.getInt(cursor.getColumnIndex(NotiDatabase.HOUR))
                 val minute = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MINUTE))
                 val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
@@ -66,7 +76,8 @@ class MainViewModel: ViewModel() {
                         minute,
                         isActive==1,
                         message,
-                        period
+                        period,
+                        id
                     )
                 )
             } while (cursor.moveToNext())
@@ -94,15 +105,19 @@ class MainViewModel: ViewModel() {
             val cursor = db.rawQuery("SELECT * FROM ${NotiDatabase.TABLE_NAME}", null)
             if (cursor.moveToFirst()) {
                 do {
+                    val id = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ID))
                     val hour = cursor.getInt(cursor.getColumnIndex(NotiDatabase.HOUR))
                     val minute = cursor.getInt(cursor.getColumnIndex(NotiDatabase.MINUTE))
                     val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
                     val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
+                    val period = cursor.getInt(cursor.getColumnIndex(NotiDatabase.PERIOD))
                     dataList.add(
                         NotiInfo(hour,
                             minute,
                             isActive==1,
-                            message
+                            message,
+                            period,
+                            id
                         )
                     )
                 } while (cursor.moveToNext())
@@ -110,6 +125,28 @@ class MainViewModel: ViewModel() {
             cursor.close()
             db.close()
             return dataList
+        }
+        fun updateNoti(context: Context,
+                       notiInfo: NotiInfo){
+            try {
+                val notiDatabase = NotiDatabase(context, null)
+                val database = notiDatabase.writableDatabase
+                val contentValues = ContentValues().apply {
+                    put(NotiDatabase.HOUR, notiInfo.hour)
+                    put(NotiDatabase.MINUTE, notiInfo.minute)
+                    put(NotiDatabase.MESSAGE, notiInfo.message)
+                    put(NotiDatabase.ISACTIVE, if (notiInfo.isActive) 1 else 0)
+                }
+                database.update(
+                    NotiDatabase.TABLE_NAME,
+                    contentValues,
+                    NotiDatabase.ID + "= ?",
+                    arrayOf(notiInfo.id.toString())
+                )
+                database.close()
+            } catch (ex: Exception){
+                Log.e("Error", ex.toString())
+            }
         }
     }
 }

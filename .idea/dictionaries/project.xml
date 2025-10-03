@@ -3,6 +3,12 @@
     <words>
       <w>isactive</w>
       <w>noti</w>
+      <w>введите</w>
+      <w>время</w>
+      <w>минут</w>
+      <w>напоминание</w>
+      <w>недели</w>
+      <w>период</w>
     </words>
   </dictionary>
 </component>

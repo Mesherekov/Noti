@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -210,9 +211,21 @@ class MainActivity : ComponentActivity() {
                             when(selectedIndex.intValue){
                                 0 -> model.addNoti(context, NotiInfo(timePickerState.hour,
                                     timePickerState.minute, true, message))
-                                1 -> model.addNoti(context, NotiInfo(isActive = true,
-                                    message = message,
-                                    period = inputValue.value.toInt()))
+                                1 -> {
+                                    if (inputValue.value.isNotEmpty() && inputValue.value.toInt() > 0) {
+                                        model.addNoti(
+                                            context, NotiInfo(
+                                                isActive = true,
+                                                message = message,
+                                                period = inputValue.value.toInt()
+                                            )
+                                        )
+                                    } else Toast.makeText(
+                                        context,
+                                        "Введите данные",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                             isHide.value = true
                         }, modifier = Modifier.size(52.dp)) {
@@ -257,7 +270,7 @@ class MainActivity : ComponentActivity() {
             .padding(5.dp)
             .windowInsetsPadding(WindowInsets.navigationBars)) {
             itemsIndexed(notis){index, item ->
-                TimeOne(item, index+1, context)
+                TimeOne(item, context)
             }
         }
     }
@@ -266,7 +279,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TimeOne(notiInfo: NotiInfo,
-                id: Int, context: Context){
+                context: Context){
         val time = if(notiInfo.hour!=-1) LocalTime.of(notiInfo.hour,
             notiInfo.minute) else null
         var colorCard by remember {
@@ -279,7 +292,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .padding(5.dp)
                     .swipeToDismiss {
-                        model.deleteNoti(id, context)
+                        model.deleteNoti(notiInfo.id, context)
                     },
 
                 colors = CardDefaults.cardColors(
@@ -309,7 +322,7 @@ class MainActivity : ComponentActivity() {
                                 colorCard = if (!it) Color(0xFFCFCCCC) else Color(0xFFB3B5FF)
                                 isActive.value = it
                                 model.updateNoti(context,
-                                    notiInfo.copy(isActive = isActive.value), id)
+                                    notiInfo.copy(isActive = isActive.value))
                                 isAnyActive()
                             },
                             colors = SwitchDefaults.colors(

@@ -5,5 +5,6 @@ data class NotiInfo(
     val minute: Int = -1,
     val isActive: Boolean,
     val message: String,
-    val period: Int = 0
+    val period: Int = 0,
+    val id: Int = 1
 )

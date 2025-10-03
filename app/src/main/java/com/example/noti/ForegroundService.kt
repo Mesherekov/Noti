@@ -54,7 +54,8 @@ class ForegroundService: Service() {
                         listNoti.forEachIndexed { id, item ->
                             if(item.hour == currentTime.hours && item.minute == currentTime.minutes){
                                 sendNoti(item)
-                                listNoti.removeAt(id)
+                                MainViewModel.updateNoti(applicationContext,
+                                    item.copy(isActive = false))
                             }
                         }
                     }
@@ -130,6 +131,6 @@ class ForegroundService: Service() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        notificationManager.notify(2, noti)
+        notificationManager.notify(info.id, noti)
     }
 }

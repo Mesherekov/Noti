@@ -47,6 +47,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -243,7 +245,6 @@ class MainActivity : ComponentActivity() {
                         onPeriod = {PeriodSelect(inputValue)},
                         selectedIndex)
 
-                    //TimeSelect(timePickerState)
                     OutlinedTextField(onValueChange = {
                         message = it
                     },
@@ -346,6 +347,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun TimeSelect(timePickerState: TimePickerState){
         var isCheck by remember { mutableStateOf(false) }
+        val daysOfWeek = DaysOFWeek.entries.toTypedArray()
         Card(elevation = CardDefaults
             .elevatedCardElevation(5.dp),
             modifier = Modifier
@@ -365,7 +367,17 @@ class MainActivity : ComponentActivity() {
                     })
             }
         }
+        DropdownMenu(
+            expanded = isCheck,
+            onDismissRequest = { isCheck = false },
+            containerColor = Color(0xFFBDB8F8)
+        ) {
+            daysOfWeek.forEach { DropdownMenuItem(
+                onClick = { },
+                text = { Text(it.name) }
+            ) }
 
+        }
         TimeInput(
             state = timePickerState,
             modifier = Modifier

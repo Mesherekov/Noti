@@ -176,7 +176,10 @@ class MainActivity : ComponentActivity() {
     fun TimePick(isHide: MutableState<Boolean>, context: Context){
         var message by remember{mutableStateOf("")}
         val inputValue = remember { mutableStateOf("") }
+        val day = remember { mutableIntStateOf(0) }
         val selectedIndex = remember { mutableIntStateOf(0) } // Tracks selected button index
+
+        val daysOfWeek = DaysOFWeek.entries.toTypedArray()
 
         Box(contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -212,14 +215,16 @@ class MainActivity : ComponentActivity() {
                         IconButton(onClick = {
                             when(selectedIndex.intValue){
                                 0 -> model.addNoti(context, NotiInfo(timePickerState.hour,
-                                    timePickerState.minute, true, message))
+                                    timePickerState.minute, true, message,
+                                    day = if (day.intValue!=0)daysOfWeek[day.intValue-1] else null))
                                 1 -> {
                                     if (inputValue.value.isNotEmpty() && inputValue.value.toInt() > 0) {
                                         model.addNoti(
                                             context, NotiInfo(
                                                 isActive = true,
                                                 message = message,
-                                                period = inputValue.value.toInt()
+                                                period = inputValue.value.toInt(),
+                                                day = null
                                             )
                                         )
                                     } else Toast.makeText(
@@ -241,7 +246,8 @@ class MainActivity : ComponentActivity() {
                     SingleChoiceSegmentedButton(Modifier
                         .fillMaxWidth()
                         .padding(5.dp),
-                        onTime = {TimeSelect(timePickerState)},
+                        onTime = {TimeSelect(timePickerState,
+                            day)},
                         onPeriod = {PeriodSelect(inputValue)},
                         selectedIndex)
 
@@ -305,7 +311,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(5.dp)
                 ) {Column {
-                    Text(text = format24hShort ?: "",
+                    Text(text = format24hShort + if (notiInfo.day!=null) "/"+notiInfo.day.title  else "",
                         fontSize = 25.sp)
                     Text(text = notiInfo.message,
                         fontSize = 14.sp)
@@ -345,8 +351,12 @@ class MainActivity : ComponentActivity() {
     //Triggering a time note
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun TimeSelect(timePickerState: TimePickerState){
+    fun TimeSelect(
+        timePickerState: TimePickerState,
+        day: MutableState<Int>
+    ){
         var isCheck by remember { mutableStateOf(false) }
+        var isMenuCheck by remember { mutableStateOf(false) }
         val daysOfWeek = DaysOFWeek.entries.toTypedArray()
         Card(elevation = CardDefaults
             .elevatedCardElevation(5.dp),
@@ -364,17 +374,21 @@ class MainActivity : ComponentActivity() {
                 Checkbox(checked = isCheck,
                     onCheckedChange = {
                         isCheck = it
+                        if(it) isMenuCheck = true
+                        if (!isCheck) day.value = 0
                     })
             }
         }
         DropdownMenu(
-            expanded = isCheck,
-            onDismissRequest = { isCheck = false },
+            expanded = isMenuCheck,
+            onDismissRequest = { isCheck = false
+                               isMenuCheck = false},
             containerColor = Color(0xFFBDB8F8)
         ) {
             daysOfWeek.forEach { DropdownMenuItem(
-                onClick = { },
-                text = { Text(it.name) }
+                onClick = {day.value = it.id
+                          isMenuCheck = false},
+                text = { Text(it.title) }
             ) }
 
         }

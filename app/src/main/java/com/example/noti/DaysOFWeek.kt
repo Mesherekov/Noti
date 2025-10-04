@@ -1,6 +1,6 @@
 package com.example.noti
 
-enum class DaysOFWeek(name: String, id: Int) {
+enum class DaysOFWeek(val title: String, val id: Int) {
     Monday("Понедельник", 1),
     Tuesday("Вторник", 2),
     Wednesday("Среда", 3),

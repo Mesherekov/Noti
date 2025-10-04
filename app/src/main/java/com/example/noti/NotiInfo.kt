@@ -6,5 +6,6 @@ data class NotiInfo(
     val isActive: Boolean,
     val message: String,
     val period: Int = 0,
-    val id: Int = 1
+    val id: Int = 1,
+    val day: DaysOFWeek?
 )

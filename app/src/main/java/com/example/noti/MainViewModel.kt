@@ -25,6 +25,7 @@ class MainViewModel: ViewModel() {
             put(NotiDatabase.MESSAGE, notiInfo.message)
             put(NotiDatabase.ISACTIVE, if(notiInfo.isActive) 1 else 0)
             put(NotiDatabase.PERIOD, notiInfo.period)
+            put(NotiDatabase.DAY, if (notiInfo.day!=null) notiInfo.day.id else 0)
         }
         database.insert(NotiDatabase.TABLE_NAME, null, contentValues)
         database.close()
@@ -58,6 +59,7 @@ class MainViewModel: ViewModel() {
 
     @SuppressLint("Range")
     fun getAllData(context: Context): List<NotiInfo> {
+        val daysOfWeek = DaysOFWeek.entries.toTypedArray()
         val dataList = mutableListOf<NotiInfo>()
         val notiDatabase = NotiDatabase(context, null)
         val db = notiDatabase.readableDatabase
@@ -70,6 +72,7 @@ class MainViewModel: ViewModel() {
                 val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
                 val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
                 val period = cursor.getInt(cursor.getColumnIndex(NotiDatabase.PERIOD))
+                val day = cursor.getInt(cursor.getColumnIndex(NotiDatabase.DAY))
 
                 dataList.add(
                     NotiInfo(hour,
@@ -77,7 +80,8 @@ class MainViewModel: ViewModel() {
                         isActive==1,
                         message,
                         period,
-                        id
+                        id,
+                        if (day!=0)daysOfWeek[day-1] else null
                     )
                 )
             } while (cursor.moveToNext())
@@ -99,6 +103,7 @@ class MainViewModel: ViewModel() {
     companion object{
         @SuppressLint("Range")
         fun getAllData(context: Context): List<NotiInfo> {
+            val daysOfWeek = DaysOFWeek.entries.toTypedArray()
             val dataList = mutableListOf<NotiInfo>()
             val notiDatabase = NotiDatabase(context, null)
             val db = notiDatabase.readableDatabase
@@ -111,13 +116,15 @@ class MainViewModel: ViewModel() {
                     val isActive = cursor.getInt(cursor.getColumnIndex(NotiDatabase.ISACTIVE))
                     val message = cursor.getString(cursor.getColumnIndex(NotiDatabase.MESSAGE))
                     val period = cursor.getInt(cursor.getColumnIndex(NotiDatabase.PERIOD))
+                    val day = cursor.getInt(cursor.getColumnIndex(NotiDatabase.DAY))
                     dataList.add(
                         NotiInfo(hour,
                             minute,
                             isActive==1,
                             message,
                             period,
-                            id
+                            id,
+                            if (day!=0)daysOfWeek[day-1] else null
                         )
                     )
                 } while (cursor.moveToNext())

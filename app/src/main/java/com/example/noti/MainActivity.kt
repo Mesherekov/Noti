@@ -426,7 +426,9 @@ class MainActivity : ComponentActivity() {
                 containerColor = Color(0xFFB4AFFB)
             )) {
             BasicTextField(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .fillMaxWidth(),
                 value = inputValue.value,
                 onValueChange = {if(it.all { char -> char.isDigit() } && it[0].code != 0) inputValue.value = it},
                 decorationBox = { innerTextField ->
@@ -439,7 +441,7 @@ class MainActivity : ComponentActivity() {
 
                         Box(
                             modifier = Modifier
-                                .widthIn(min = 40.dp)
+                                .widthIn(min = 40.dp, max = 100.dp)
                                 .background(
                                     color = Color(0xFFF0F0F0),
                                     shape = RoundedCornerShape(4.dp)

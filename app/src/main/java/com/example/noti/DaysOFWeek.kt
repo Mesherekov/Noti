@@ -1,11 +1,12 @@
 package com.example.noti
 
 enum class DaysOFWeek(val title: String, val id: Int) {
-    Monday("Понедельник", 1),
-    Tuesday("Вторник", 2),
-    Wednesday("Среда", 3),
-    Thursday("Четверг", 4),
-    Friday("Пятница", 5),
-    Saturday("Суббота", 6),
-    Sunday("Воскресенье", 7)
+    Sunday("Воскресенье", 1),
+    Monday("Понедельник", 2),
+    Tuesday("Вторник", 3),
+    Wednesday("Среда", 4),
+    Thursday("Четверг", 5),
+    Friday("Пятница", 6),
+    Saturday("Суббота", 7),
+
 }

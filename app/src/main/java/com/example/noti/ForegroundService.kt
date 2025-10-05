@@ -40,23 +40,32 @@ class ForegroundService: Service() {
         var listNoti: MutableList<NotiInfo>
 
         val runCatch = runCatching {
-            val listIntervalNoti = MainViewModel.getAllData(applicationContext).filter {
+            var listIntervalNoti = MainViewModel.getAllData(applicationContext).filter {
             it.isActive && it.period != 0
             }.toMutableList()
             val timer = Timer()
             timer.schedule(
                 object : TimerTask() {
                     override fun run() {
+                        listIntervalNoti = MainViewModel.getAllData(applicationContext).filter {
+                            it.isActive && it.period != 0
+                        }.toMutableList()
                         listNoti = MainViewModel.getAllData(applicationContext).filter {
                             it.isActive && it.period == 0
                         }.toMutableList()
                         val currentTime = Calendar.getInstance().time
+                        val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
                         listNoti.forEachIndexed { id, item ->
-                            if(item.hour == currentTime.hours && item.minute == currentTime.minutes){
+
+                            if (item.hour == currentTime.hours && item.minute == currentTime.minutes &&
+                                (if(item.day!=null) item.day.id==currentDay else true)) {
                                 sendNoti(item)
-                                MainViewModel.updateNoti(applicationContext,
-                                    item.copy(isActive = false))
+                                MainViewModel.updateNoti(
+                                    applicationContext,
+                                    item.copy(isActive = false)
+                                )
                             }
+
                         }
                     }
                 },
